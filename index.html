@@ -1,0 +1,615 @@
+k<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>MiniSolver | CALICO</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <link href='http://fonts.googleapis.com/css?family=Lexend:400,300,700' rel='stylesheet' type='text/css'>
+  <style>
+     html {
+      scroll-behavior: smooth;
+    }
+
+    footer {
+      background-color: #555;
+      color: white;
+      padding: 15px;
+    }
+    
+    body {
+        font-family: 'Lexend', sans-serif !important;
+    }
+
+    .bg {
+
+        background-image: url("backg-c.png");
+        background-size: 40%;
+        background-repeat: repeat;
+    }
+
+    footer {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+    }
+
+  </style>
+</head>
+<body class="bg">
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+  
+<div class="container-fluid text-center" id="intro">    
+  <div class="row content">
+    <div class="col-sm-12 text-left"> 
+      <center><h1 style="font-size: 80px;"><b>Spring 2024</b></h1><img src="bricks.png" width="1000"></center>
+      <center><h2 style="font-size: 60px;"><b><i>Results Ceremony</i></b></h1></center>
+      <br>
+      <center><button onclick="init()"><a href="#leaderboard"><span style="font-size: 32px;">Start</span></a></button></center>
+    </div>
+  </div>
+</div>
+
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+<style type="text/css">
+  .tg  {border-collapse:collapse;border-spacing:0; width: 100%;}
+  .tg td{border-color:black;border-style:solid;border-width:1px;font-family:Lexend, sans-serif;font-size:30px;
+    overflow:hidden;padding:10px 5px;word-break:normal;}
+  .tg th{border-color:black;border-style:solid;border-width:1px;font-family:Lexend, sans-serif;font-size:30px;
+    font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
+  .tg .tg-0lax{text-align:left;vertical-align:top}
+</style>
+
+<script>
+
+window.leaderboard = [];
+window.problemScores = [3, 3, 2, 3, 4, 4, 1, 4, 2, 3, 5, 4, 2, 2, 6, 2, 2, 1, 7, 4, 7, 3, 12, 1, 13];
+
+class Team {
+  constructor(name, isCollege, states, pens) {
+    this.name = name;
+    this.isCollege = isCollege;
+    this.states = states;
+    this.pens = pens;
+  }
+
+  getScore() {
+    var score = 0;
+    for (var i = 0; i < 25; i++) {
+      if (this.states[i] == 1) {
+        score += parseInt(window.problemScores[i]);
+      }
+    }
+    return score;
+  }
+  
+  getPenalty() {
+    var pen = 0;
+    for (var i = 0; i < 25; i++) {
+      if (this.states[i] == 1) {
+        pen += parseInt(this.pens[i]);
+      }
+    }
+    return pen;
+  }
+
+  getNext() {
+    for (var i = 0; i < 25; i++) {
+      if (this.states[i] > 2) {
+        return i;
+      } 
+    }
+    return -1;
+  }
+
+  resolveNext() {
+    for (var i = 0; i < 25; i++) {
+      if (this.states[i] == 3) {
+        this.states[i] = 1;
+        return "YES";
+      } else if (this.states[i] == 4) {
+        this.states[i] = 2;
+        return "NO";
+      }
+    }
+    return "DONE";
+  }
+}
+
+function init() {
+  window.leaderboard = [];
+  $(document).ready(function() {
+                      $.ajax({
+                          type: "GET",
+                          url: "resolver-output.txt",
+                          dataType: "text",
+                          success: function(data) {
+                              var lines = data.split("\n");
+                              window.place = lines.length - 1;
+                              for (var i = 0; i < lines.length; i++) {
+                                  var temp = lines[i].split(",");
+                                  window.leaderboard.push(new Team(
+                                    temp.slice(51).join(",").replace("\r", ""), temp.slice(0, 1)[0], temp.slice(1, 26), temp.slice(26, 51)
+                                    )
+                                  );
+                              }
+
+                              while (window.place >= 40) {
+                                var currTeam = window.leaderboard[place];
+                                var answer = "NO";
+                                while (answer == "NO") {
+                                  answer = currTeam.resolveNext();
+                                }
+                                if (answer == "YES") {
+                                  sortLeaderboard();
+                                } else if (answer == "DONE") {
+                                  place -= 1;
+                                }
+                              }
+                          }
+                      });
+                    });
+                    
+              
+
+}
+
+function sortLeaderboard() {
+  window.leaderboard.sort((a, b) => parseFloat(a.getPenalty()) - parseFloat(b.getPenalty()));
+  window.leaderboard.sort((a, b) => parseFloat(b.getScore()) - parseFloat(a.getScore()));
+  console.log(window.leaderboard);
+}
+
+function renderTeam(idx, place, isActive) {
+  var team = window.leaderboard[place];
+  if (isActive) {
+    document.getElementById("row" + idx).style = "background-color: white;"
+  } else {
+    document.getElementById("row" + idx).style = "background-color: transparent;"
+  }
+
+  document.getElementById("row" + idx + "rank").innerHTML = place + 1;
+  document.getElementById("row" + idx + "name").innerHTML = team.name;
+  document.getElementById("row" + idx + "score").innerHTML = team.getScore();
+  document.getElementById("row" + idx + "pen").innerHTML = team.getPenalty();
+  
+  for (var i = 0; i < 25; i++) {
+    switch (parseInt(team.states[i])) {
+      case 0:
+        document.getElementById("row" + idx + "p" + i).className = "label label-default label-large";
+        break;
+      case 1:
+        document.getElementById("row" + idx + "p" + i).className = "label label-success label-large";
+        break;
+      case 2:
+        document.getElementById("row" + idx + "p" + i).className = "label label-danger label-large";
+        break;
+      default:
+        document.getElementById("row" + idx + "p" + i).className = "label label-warning label-large";
+
+    }
+  }
+
+}
+
+function findTeam(t) {
+  for (var i = 0; i < window.leaderboard.length; i++) {
+    if (window.leaderboard[i].name == t) {
+      return i;
+    }
+  }
+}
+
+window.onload = function() {
+  window.onkeydown = function(key) {
+    var idx = Math.min(7, window.place);
+    var toBeResolved = window.leaderboard[window.place].getNext();
+
+    if (key.keyCode == 49) {
+      for (var i = 0; i < 8; i++) {
+        renderTeam(i % 8, i, false);
+      }
+    }
+
+    if (key.keyCode == 50) {
+      for (var i = 8; i < 16; i++) {
+        renderTeam(i % 8, i, false);
+      }
+    }
+
+    if (key.keyCode == 51) {
+      for (var i = 16; i < 24; i++) {
+        renderTeam(i % 8, i, false);
+      }
+    }
+
+    if (key.keyCode == 52) {
+      for (var i = 24; i < 32; i++) {
+        renderTeam(i % 8, i, false);
+      }
+    }
+
+    if (key.keyCode == 53) {
+      for (var i = 32; i < 40; i++) {
+        renderTeam(i % 8, i, false);
+      }
+    }
+
+
+
+    if (key.keyCode == 32) {
+      sortLeaderboard();
+
+      var lowerBound = Math.max(0, window.place - 7);
+      var upperBound = lowerBound + 7;
+      var j = 0;
+      for (var i = lowerBound; i <= upperBound; i++) {
+        renderTeam(j, i, i == window.place);
+        j += 1;
+      }
+
+    }
+
+    if (key.keyCode == 66) {
+      if (toBeResolved == -1) {
+        renderTeam(idx, window.place, false);
+        window.place -= 1;
+      } else {
+        document.getElementById("row" + idx + "p" + toBeResolved).className = "label label-primary label-large";
+      }
+    }
+
+    if (key.keyCode == 78) {
+      var oldTeam = window.leaderboard[window.place].name;
+      var verdict = window.leaderboard[window.place].resolveNext();
+      if (verdict == "YES") {
+        document.getElementById("row" + idx + "p" + toBeResolved).className = "label label-success label-large";        
+        sortLeaderboard();
+        var newPlace = findTeam(oldTeam);   
+        if ((place - newPlace) > 7) {
+          renderTeam(0, newPlace, true);
+          for (var j = 1; j <= 7; j++) {
+            renderTeam(j, window.place - 7 + j, false);
+          }
+        } else if (window.place >= 8) {
+          for (var j = 0; j <= 7; j++) {
+            renderTeam(j, window.place - 7 + j, window.place - 7 + j == newPlace);
+          }
+        } else {
+          for (var j = 0; j <= 7; j++) {
+            renderTeam(j, j, j == newPlace);
+          }
+        }
+
+      } else if (verdict == "NO") {
+        document.getElementById("row" + idx + "p" + toBeResolved).className = "label label-danger label-large";
+      } 
+    }
+    
+  }
+}
+
+
+
+</script>
+
+<div class="container-fluid" id="leaderboard"> 
+  <div class-="row content">
+    <table class="tg">
+      <thead>
+        <tr id="row0">
+          <td id="row0rank" class="tg-0lax">1</td>
+          <span style="font-family: 'Lexend'; font-size: 30px;"><td id="row0team" class="tg-0lax">
+            <h2><b><span id="row0name">Team Name</span></b></h2>
+            <span id="row0p0" class="label label-success label-large">1</span> 
+            <span id="row0p1" class="label label-warning label-large">2</span> 
+            <span id="row0p2" class="label label-danger label-large">3</span> 
+            <span id="row0p3" class="label label-primary label-large">4</span> 
+            <span id="row0p4" class="label label-default label-large">5</span> 
+            <span id="row0p5" class="label label-default label-large">6</span> 
+            <span id="row0p6" class="label label-default label-large">7</span> 
+            <span id="row0p7" class="label label-default label-large">8</span> 
+            <span id="row0p8" class="label label-default label-large">9</span> 
+            <span id="row0p9" class="label label-default label-large">10</span> 
+            <span id="row0p10" class="label label-default label-large">11</span> 
+            <span id="row0p11" class="label label-default label-large">12</span> 
+            <span id="row0p12" class="label label-default label-large">13</span> 
+            <span id="row0p13" class="label label-default label-large">14</span> 
+            <span id="row0p14" class="label label-default label-large">15</span> 
+            <span id="row0p15" class="label label-default label-large">16</span> 
+            <span id="row0p16" class="label label-default label-large">17</span> 
+            <span id="row0p17" class="label label-default label-large">18</span> 
+            <span id="row0p18" class="label label-default label-large">19</span> 
+            <span id="row0p19" class="label label-default label-large">20</span> 
+            <span id="row0p20" class="label label-default label-large">21</span> 
+            <span id="row0p21" class="label label-default label-large">22</span> 
+            <span id="row0p22" class="label label-default label-large">23</span> 
+            <span id="row0p23" class="label label-default label-large">24</span> 
+            <span id="row0p24" class="label label-default label-large">25</span>
+          </td>
+        </span>
+          <td id="row0score" class="tg-0lax">100</td>
+          <td id="row0pen" class="tg-0lax">1000</td>
+        </tr>
+        <tr id="row1">
+          <td id="row1rank" class="tg-0lax">1</td>
+          <span style="font-family: 'Lexend'; font-size: 30px;"><td id="row1team" class="tg-0lax">
+            <h2><b><span id="row1name">Team Name</span></b></h2>
+            <span id="row1p0" class="label label-success label-large">1</span> 
+            <span id="row1p1" class="label label-warning label-large">2</span> 
+            <span id="row1p2" class="label label-danger label-large">3</span> 
+            <span id="row1p3" class="label label-primary label-large">4</span> 
+            <span id="row1p4" class="label label-default label-large">5</span> 
+            <span id="row1p5" class="label label-default label-large">6</span> 
+            <span id="row1p6" class="label label-default label-large">7</span> 
+            <span id="row1p7" class="label label-default label-large">8</span> 
+            <span id="row1p8" class="label label-default label-large">9</span> 
+            <span id="row1p9" class="label label-default label-large">10</span> 
+            <span id="row1p10" class="label label-default label-large">11</span> 
+            <span id="row1p11" class="label label-default label-large">12</span> 
+            <span id="row1p12" class="label label-default label-large">13</span> 
+            <span id="row1p13" class="label label-default label-large">14</span> 
+            <span id="row1p14" class="label label-default label-large">15</span> 
+            <span id="row1p15" class="label label-default label-large">16</span> 
+            <span id="row1p16" class="label label-default label-large">17</span> 
+            <span id="row1p17" class="label label-default label-large">18</span> 
+            <span id="row1p18" class="label label-default label-large">19</span> 
+            <span id="row1p19" class="label label-default label-large">20</span> 
+            <span id="row1p20" class="label label-default label-large">21</span> 
+            <span id="row1p21" class="label label-default label-large">22</span> 
+            <span id="row1p22" class="label label-default label-large">23</span> 
+            <span id="row1p23" class="label label-default label-large">24</span> 
+            <span id="row1p24" class="label label-default label-large">25</span>
+          </td>
+        </span>
+          <td id="row1score" class="tg-0lax">100</td>
+          <td id="row1pen" class="tg-0lax">1000</td>
+        </tr>
+        <tr id="row2">
+          <td id="row2rank" class="tg-0lax">1</td>
+          <span style="font-family: 'Lexend'; font-size: 30px;"><td id="row2team" class="tg-0lax">
+            <h2><b><span id="row2name">Team Name</span></b></h2>
+            <span id="row2p0" class="label label-success label-large">1</span> 
+            <span id="row2p1" class="label label-warning label-large">2</span> 
+            <span id="row2p2" class="label label-danger label-large">3</span> 
+            <span id="row2p3" class="label label-primary label-large">4</span> 
+            <span id="row2p4" class="label label-default label-large">5</span> 
+            <span id="row2p5" class="label label-default label-large">6</span> 
+            <span id="row2p6" class="label label-default label-large">7</span> 
+            <span id="row2p7" class="label label-default label-large">8</span> 
+            <span id="row2p8" class="label label-default label-large">9</span> 
+            <span id="row2p9" class="label label-default label-large">10</span> 
+            <span id="row2p10" class="label label-default label-large">11</span> 
+            <span id="row2p11" class="label label-default label-large">12</span> 
+            <span id="row2p12" class="label label-default label-large">13</span> 
+            <span id="row2p13" class="label label-default label-large">14</span> 
+            <span id="row2p14" class="label label-default label-large">15</span> 
+            <span id="row2p15" class="label label-default label-large">16</span> 
+            <span id="row2p16" class="label label-default label-large">17</span> 
+            <span id="row2p17" class="label label-default label-large">18</span> 
+            <span id="row2p18" class="label label-default label-large">19</span> 
+            <span id="row2p19" class="label label-default label-large">20</span> 
+            <span id="row2p20" class="label label-default label-large">21</span> 
+            <span id="row2p21" class="label label-default label-large">22</span> 
+            <span id="row2p22" class="label label-default label-large">23</span> 
+            <span id="row2p23" class="label label-default label-large">24</span> 
+            <span id="row2p24" class="label label-default label-large">25</span>
+          </td>
+        </span>
+          <td id="row2score" class="tg-0lax">100</td>
+          <td id="row2pen" class="tg-0lax">1000</td>
+        </tr>
+        <tr id="row3">
+          <td id="row3rank" class="tg-0lax">1</td>
+          <span style="font-family: 'Lexend'; font-size: 30px;"><td id="row3team" class="tg-0lax">
+            <h2><b><span id="row3name">Team Name</span></b></h2>
+            <span id="row3p0" class="label label-success label-large">1</span> 
+            <span id="row3p1" class="label label-warning label-large">2</span> 
+            <span id="row3p2" class="label label-danger label-large">3</span> 
+            <span id="row3p3" class="label label-primary label-large">4</span> 
+            <span id="row3p4" class="label label-default label-large">5</span> 
+            <span id="row3p5" class="label label-default label-large">6</span> 
+            <span id="row3p6" class="label label-default label-large">7</span> 
+            <span id="row3p7" class="label label-default label-large">8</span> 
+            <span id="row3p8" class="label label-default label-large">9</span> 
+            <span id="row3p9" class="label label-default label-large">10</span> 
+            <span id="row3p10" class="label label-default label-large">11</span> 
+            <span id="row3p11" class="label label-default label-large">12</span> 
+            <span id="row3p12" class="label label-default label-large">13</span> 
+            <span id="row3p13" class="label label-default label-large">14</span> 
+            <span id="row3p14" class="label label-default label-large">15</span> 
+            <span id="row3p15" class="label label-default label-large">16</span> 
+            <span id="row3p16" class="label label-default label-large">17</span> 
+            <span id="row3p17" class="label label-default label-large">18</span> 
+            <span id="row3p18" class="label label-default label-large">19</span> 
+            <span id="row3p19" class="label label-default label-large">20</span> 
+            <span id="row3p20" class="label label-default label-large">21</span> 
+            <span id="row3p21" class="label label-default label-large">22</span> 
+            <span id="row3p22" class="label label-default label-large">23</span> 
+            <span id="row3p23" class="label label-default label-large">24</span> 
+            <span id="row3p24" class="label label-default label-large">25</span>
+          </td>
+        </span>
+          <td id="row3score" class="tg-0lax">100</td>
+          <td id="row3pen" class="tg-0lax">1000</td>
+        </tr>
+        <tr id="row4">
+          <td id="row4rank" class="tg-0lax">1</td>
+          <span style="font-family: 'Lexend'; font-size: 30px;"><td id="row4team" class="tg-0lax">
+            <h2><b><span id="row4name">Team Name</span></b></h2>
+            <span id="row4p0" class="label label-success label-large">1</span> 
+            <span id="row4p1" class="label label-warning label-large">2</span> 
+            <span id="row4p2" class="label label-danger label-large">3</span> 
+            <span id="row4p3" class="label label-primary label-large">4</span> 
+            <span id="row4p4" class="label label-default label-large">5</span> 
+            <span id="row4p5" class="label label-default label-large">6</span> 
+            <span id="row4p6" class="label label-default label-large">7</span> 
+            <span id="row4p7" class="label label-default label-large">8</span> 
+            <span id="row4p8" class="label label-default label-large">9</span> 
+            <span id="row4p9" class="label label-default label-large">10</span> 
+            <span id="row4p10" class="label label-default label-large">11</span> 
+            <span id="row4p11" class="label label-default label-large">12</span> 
+            <span id="row4p12" class="label label-default label-large">13</span> 
+            <span id="row4p13" class="label label-default label-large">14</span> 
+            <span id="row4p14" class="label label-default label-large">15</span> 
+            <span id="row4p15" class="label label-default label-large">16</span> 
+            <span id="row4p16" class="label label-default label-large">17</span> 
+            <span id="row4p17" class="label label-default label-large">18</span> 
+            <span id="row4p18" class="label label-default label-large">19</span> 
+            <span id="row4p19" class="label label-default label-large">20</span> 
+            <span id="row4p20" class="label label-default label-large">21</span> 
+            <span id="row4p21" class="label label-default label-large">22</span> 
+            <span id="row4p22" class="label label-default label-large">23</span> 
+            <span id="row4p23" class="label label-default label-large">24</span> 
+            <span id="row4p24" class="label label-default label-large">25</span>
+          </td>
+        </span>
+          <td id="row4score" class="tg-0lax">100</td>
+          <td id="row4pen" class="tg-0lax">1000</td>
+        </tr>
+        <tr id="row5">
+          <td id="row5rank" class="tg-0lax">1</td>
+          <span style="font-family: 'Lexend'; font-size: 30px;"><td id="row5team" class="tg-0lax">
+            <h2><b><span id="row5name">Team Name</span></b></h2>
+            <span id="row5p0" class="label label-success label-large">1</span> 
+            <span id="row5p1" class="label label-warning label-large">2</span> 
+            <span id="row5p2" class="label label-danger label-large">3</span> 
+            <span id="row5p3" class="label label-primary label-large">4</span> 
+            <span id="row5p4" class="label label-default label-large">5</span> 
+            <span id="row5p5" class="label label-default label-large">6</span> 
+            <span id="row5p6" class="label label-default label-large">7</span> 
+            <span id="row5p7" class="label label-default label-large">8</span> 
+            <span id="row5p8" class="label label-default label-large">9</span> 
+            <span id="row5p9" class="label label-default label-large">10</span> 
+            <span id="row5p10" class="label label-default label-large">11</span> 
+            <span id="row5p11" class="label label-default label-large">12</span> 
+            <span id="row5p12" class="label label-default label-large">13</span> 
+            <span id="row5p13" class="label label-default label-large">14</span> 
+            <span id="row5p14" class="label label-default label-large">15</span> 
+            <span id="row5p15" class="label label-default label-large">16</span> 
+            <span id="row5p16" class="label label-default label-large">17</span> 
+            <span id="row5p17" class="label label-default label-large">18</span> 
+            <span id="row5p18" class="label label-default label-large">19</span> 
+            <span id="row5p19" class="label label-default label-large">20</span> 
+            <span id="row5p20" class="label label-default label-large">21</span> 
+            <span id="row5p21" class="label label-default label-large">22</span> 
+            <span id="row5p22" class="label label-default label-large">23</span> 
+            <span id="row5p23" class="label label-default label-large">24</span> 
+            <span id="row5p24" class="label label-default label-large">25</span>
+          </td>
+        </span>
+          <td id="row5score" class="tg-0lax">100</td>
+          <td id="row5pen" class="tg-0lax">1000</td>
+        </tr>
+        <tr id="row6">
+          <td id="row6rank" class="tg-0lax">1</td>
+          <span style="font-family: 'Lexend'; font-size: 30px;"><td id="row6team" class="tg-0lax">
+            <h2><b><span id="row6name">Team Name</span></b></h2>
+            <span id="row6p0" class="label label-success label-large">1</span> 
+            <span id="row6p1" class="label label-warning label-large">2</span> 
+            <span id="row6p2" class="label label-danger label-large">3</span> 
+            <span id="row6p3" class="label label-primary label-large">4</span> 
+            <span id="row6p4" class="label label-default label-large">5</span> 
+            <span id="row6p5" class="label label-default label-large">6</span> 
+            <span id="row6p6" class="label label-default label-large">7</span> 
+            <span id="row6p7" class="label label-default label-large">8</span> 
+            <span id="row6p8" class="label label-default label-large">9</span> 
+            <span id="row6p9" class="label label-default label-large">10</span> 
+            <span id="row6p10" class="label label-default label-large">11</span> 
+            <span id="row6p11" class="label label-default label-large">12</span> 
+            <span id="row6p12" class="label label-default label-large">13</span> 
+            <span id="row6p13" class="label label-default label-large">14</span> 
+            <span id="row6p14" class="label label-default label-large">15</span> 
+            <span id="row6p15" class="label label-default label-large">16</span> 
+            <span id="row6p16" class="label label-default label-large">17</span> 
+            <span id="row6p17" class="label label-default label-large">18</span> 
+            <span id="row6p18" class="label label-default label-large">19</span> 
+            <span id="row6p19" class="label label-default label-large">20</span> 
+            <span id="row6p20" class="label label-default label-large">21</span> 
+            <span id="row6p21" class="label label-default label-large">22</span> 
+            <span id="row6p22" class="label label-default label-large">23</span> 
+            <span id="row6p23" class="label label-default label-large">24</span> 
+            <span id="row6p24" class="label label-default label-large">25</span>
+          </td>
+        </span>
+          <td id="row6score" class="tg-0lax">100</td>
+          <td id="row6pen" class="tg-0lax">1000</td>
+        </tr>
+        <tr id="row7">
+          <td id="row7rank" class="tg-0lax">1</td>
+          <span style="font-family: 'Lexend'; font-size: 30px;"><td id="row7team" class="tg-0lax">
+            <h2><b><span id="row7name">Team Name</span></b></h2>
+            <span id="row7p0" class="label label-success label-large">1</span> 
+            <span id="row7p1" class="label label-warning label-large">2</span> 
+            <span id="row7p2" class="label label-danger label-large">3</span> 
+            <span id="row7p3" class="label label-primary label-large">4</span> 
+            <span id="row7p4" class="label label-default label-large">5</span> 
+            <span id="row7p5" class="label label-default label-large">6</span> 
+            <span id="row7p6" class="label label-default label-large">7</span> 
+            <span id="row7p7" class="label label-default label-large">8</span> 
+            <span id="row7p8" class="label label-default label-large">9</span> 
+            <span id="row7p9" class="label label-default label-large">10</span> 
+            <span id="row7p10" class="label label-default label-large">11</span> 
+            <span id="row7p11" class="label label-default label-large">12</span> 
+            <span id="row7p12" class="label label-default label-large">13</span> 
+            <span id="row7p13" class="label label-default label-large">14</span> 
+            <span id="row7p14" class="label label-default label-large">15</span> 
+            <span id="row7p15" class="label label-default label-large">16</span> 
+            <span id="row7p16" class="label label-default label-large">17</span> 
+            <span id="row7p17" class="label label-default label-large">18</span> 
+            <span id="row7p18" class="label label-default label-large">19</span> 
+            <span id="row7p19" class="label label-default label-large">20</span> 
+            <span id="row7p20" class="label label-default label-large">21</span> 
+            <span id="row7p21" class="label label-default label-large">22</span> 
+            <span id="row7p22" class="label label-default label-large">23</span> 
+            <span id="row7p23" class="label label-default label-large">24</span> 
+            <span id="row7p24" class="label label-default label-large">25</span>
+          </td>
+        </span>
+          <td id="row7score" class="tg-0lax">100</td>
+          <td id="row7pen" class="tg-0lax">1000</td>
+        </tr>
+                                                
+      </thead>
+    </table>
+  </div>
+  <br>
+  <br>
+  <br>
+  <br>
+</div>
+
+
+<footer style="font-size: 24px">
+    MiniSolver was made with <img src="prideheart.png" width="40" height="40">
+</footer>
+
+</body>
+</html>

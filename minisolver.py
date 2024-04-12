@@ -70,6 +70,8 @@ class Team:
 
     def __repr__(self):
         return self.name
+    
+# begin pre-processing
 
 all_teams = {}
 mega_file = open("new-event-feed.ndjson").read().splitlines()
@@ -134,6 +136,26 @@ for j, judging in pending_judgements.items():
         else:
             all_teams[judging[2]].update_problem(judging[0], ProblemState.WA, j, no_pen)
 
+# end pre-processing
+
+# generate csv file for web version
+
+output = []
+for k, v in all_teams.items():
+    line = []
+    line.append("0")
+    line.extend([str(x.value) for x in v.problems])
+    line.extend([str(x) for x in v.penalties])
+    line.append(v.name)
+    output.append(line)
+
+output.sort(key=lambda x: x[-1])
+
+f = open("resolver-output.txt", "w", encoding="utf-8")
+f.write("\n".join([",".join(x) for x in output]))
+f.close()
+
+# text-based version of resolver starts here
 
 # pre-freeze leaderboard
 
@@ -146,6 +168,8 @@ leaderboard.sort(key=lambda x: x.penalty_time())
 leaderboard.sort(key=lambda x: x.score(), reverse=True)
 
 place = len(leaderboard) - 1
+
+# resolution
 
 while place >= 0:
     curr_team = leaderboard[place]
