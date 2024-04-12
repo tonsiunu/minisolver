@@ -74,7 +74,7 @@ class Team:
 # begin pre-processing
 
 all_teams = {}
-mega_file = open("new-event-feed.ndjson").read().splitlines()
+mega_file = open("event-feed.json").read().splitlines()
 pending_submissions = {}
 pending_judgements = {}
 

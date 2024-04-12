@@ -21,10 +21,6 @@ k<!DOCTYPE html>
     
     body {
         font-family: 'Lexend', sans-serif !important;
-    }
-
-    .bg {
-
         background-image: url("backg-c.png");
         background-size: 40%;
         background-repeat: repeat;
@@ -77,6 +73,30 @@ k<!DOCTYPE html>
 <br>
 <br>
 <br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
 
 <style type="text/css">
   .tg  {border-collapse:collapse;border-spacing:0; width: 100%;}
@@ -90,12 +110,13 @@ k<!DOCTYPE html>
 <script>
 
 window.leaderboard = [];
-window.problemScores = [3, 3, 2, 3, 4, 4, 1, 4, 2, 3, 5, 4, 2, 2, 6, 2, 2, 1, 7, 4, 7, 3, 12, 1, 13];
+window.problemScores = [3, 3, 2, 3, 4, 4, 1, 4, 2, 3, 5, 4, 2, 2, 6, 2, 2, 1, 7, 4, 7, 3, 12, 1, 13]; /* fa23 */
+window.problemScores = [3, 3, 3, 0, 0, 0, 4, 3, 4, 2, 2, 1, 5, 3, 3, 4, 6, 2, 6, 6, 7, 2, 8, 10, 13]; /* fa22 */
 
 class Team {
   constructor(name, isCollege, states, pens) {
     this.name = name;
-    this.isCollege = isCollege;
+    this.isCollege = parseInt(isCollege);
     this.states = states;
     this.pens = pens;
   }
@@ -144,7 +165,10 @@ class Team {
 }
 
 function init() {
+  window.nextAction = 0;
   window.leaderboard = [];
+  document.getElementById("foot").style = "display: none;"
+  document.body.style.backgroundImage = "url('backg.png')"; 
   $(document).ready(function() {
                       $.ajax({
                           type: "GET",
@@ -190,7 +214,7 @@ function sortLeaderboard() {
 function renderTeam(idx, place, isActive) {
   var team = window.leaderboard[place];
   if (isActive) {
-    document.getElementById("row" + idx).style = "background-color: white;"
+    document.getElementById("row" + idx).style = "background-color: ddd;"
   } else {
     document.getElementById("row" + idx).style = "background-color: transparent;"
   }
@@ -227,7 +251,35 @@ function findTeam(t) {
   }
 }
 
+function bestCollege() {
+  var currTeam = window.leaderboard[window.place];
+  if (!currTeam.isCollege) {
+    return false;
+  }
+  for (var i = 0; i < place; i++) {
+    if (window.leaderboard[i].isCollege) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function nonCollegePlace() {
+  var currTeam = window.leaderboard[window.place];
+  if (currTeam.isCollege) {
+    return Number.POSITIVE_INFINITY;
+  }
+  var j = 1;
+  for (var i = 0; i < place; i++) {
+    if (!(window.leaderboard[i].isCollege)) {
+      j += 1;
+    }
+  }
+  return j;  
+}
+
 window.onload = function() {
+  document.getElementById("prizeScreen").style = "display: none;"
   window.onkeydown = function(key) {
     var idx = Math.min(7, window.place);
     var toBeResolved = window.leaderboard[window.place].getNext();
@@ -265,54 +317,125 @@ window.onload = function() {
 
 
     if (key.keyCode == 32) {
-      sortLeaderboard();
 
-      var lowerBound = Math.max(0, window.place - 7);
-      var upperBound = lowerBound + 7;
-      var j = 0;
-      for (var i = lowerBound; i <= upperBound; i++) {
-        renderTeam(j, i, i == window.place);
-        j += 1;
-      }
 
-    }
-
-    if (key.keyCode == 66) {
-      if (toBeResolved == -1) {
-        renderTeam(idx, window.place, false);
-        window.place -= 1;
-      } else {
-        document.getElementById("row" + idx + "p" + toBeResolved).className = "label label-primary label-large";
-      }
-    }
-
-    if (key.keyCode == 78) {
-      var oldTeam = window.leaderboard[window.place].name;
-      var verdict = window.leaderboard[window.place].resolveNext();
-      if (verdict == "YES") {
-        document.getElementById("row" + idx + "p" + toBeResolved).className = "label label-success label-large";        
+      if (window.nextAction == 0) {
         sortLeaderboard();
-        var newPlace = findTeam(oldTeam);   
-        if ((place - newPlace) > 7) {
-          renderTeam(0, newPlace, true);
-          for (var j = 1; j <= 7; j++) {
-            renderTeam(j, window.place - 7 + j, false);
-          }
-        } else if (window.place >= 8) {
-          for (var j = 0; j <= 7; j++) {
-            renderTeam(j, window.place - 7 + j, window.place - 7 + j == newPlace);
+
+        var lowerBound = Math.max(0, window.place - 7);
+        var upperBound = lowerBound + 7;
+        var j = 0;
+        for (var i = lowerBound; i <= upperBound; i++) {
+          renderTeam(j, i, i == window.place);
+          j += 1;
+        }
+        window.nextAction = 1;
+
+      } else if (window.nextAction == 1) {
+        if (toBeResolved == -1) {
+          renderTeam(idx, window.place, false);
+          if (window.place <= 4 || bestCollege() || nonCollegePlace() <= 5) {
+            window.nextAction = 3;
+          } else {
+            window.nextAction = 0;
+            window.place = Math.max(0, window.place - 1);
           }
         } else {
-          for (var j = 0; j <= 7; j++) {
-            renderTeam(j, j, j == newPlace);
+          document.getElementById("row" + idx + "p" + toBeResolved).className = "label label-primary label-large";
+          window.nextAction = 2;
+        }
+      } else if (window.nextAction == 2) {
+        var oldTeam = window.leaderboard[window.place].name;
+        var verdict = window.leaderboard[window.place].resolveNext();
+        if (verdict == "YES") {
+          document.getElementById("row" + idx + "p" + toBeResolved).className = "label label-success label-large";        
+          sortLeaderboard();
+          var newPlace = findTeam(oldTeam);   
+          if ((place - newPlace) > 7) {
+            renderTeam(0, newPlace, true);
+            for (var j = 1; j <= 7; j++) {
+              renderTeam(j, window.place - 7 + j, false);
+            }
+          } else if (window.place >= 8) {
+            for (var j = 0; j <= 7; j++) {
+              renderTeam(j, window.place - 7 + j, window.place - 7 + j == newPlace);
+            }
+          } else {
+            for (var j = 0; j <= 7; j++) {
+              renderTeam(j, j, j == newPlace);
+            }
           }
+          window.nextAction = 0;
+
+        } else if (verdict == "NO") {
+          document.getElementById("row" + idx + "p" + toBeResolved).className = "label label-danger label-large";
+          window.nextAction = 1;
+        } 
+      } else if (window.nextAction == 3) {
+
+        var currTeam = window.leaderboard[window.place];
+        var header = [];
+        switch (nonCollegePlace()) {
+          case 1:
+            header.push("1st Place HS");
+            break;
+          case 2:
+            header.push("2nd Place HS");
+            break;
+          case 3:
+            header.push("3rd Place HS");
+            break;
+          case 4:
+            header.push("4th Place HS");
+            break;
+          case 5:
+            header.push("5th Place HS");
+            break;
+          default:
+            break;
         }
 
-      } else if (verdict == "NO") {
-        document.getElementById("row" + idx + "p" + toBeResolved).className = "label label-danger label-large";
-      } 
-    }
-    
+        switch (window.place) {
+          case 0:
+            header.push("1st Place Overall");
+            break;
+          case 1:
+            header.push("2nd Place Overall");
+            break;
+          case 2:
+            header.push("3rd Place Overall");
+            break;
+          case 3:
+            header.push("4th Place Overall");
+            break;
+          case 4:
+            header.push("5th Place Overall");
+            break;
+          default:
+            break;
+
+        }
+
+        if (bestCollege()) {
+          header.push("Best College Team");
+        }
+
+        document.getElementById("prize1").innerHTML = header.join(", ");
+        document.getElementById("prize2").innerHTML = currTeam.name;
+        document.getElementById("prize4").innerHTML = currTeam.getScore() + " pts, " + currTeam.getPenalty() + " time";
+
+        document.getElementById("prizeScreen").style = "display: block;"
+        document.getElementById("leaderboard").style = "display: none;"
+        window.nextAction = 4;
+
+
+      } else if (window.nextAction == 4) {
+        document.getElementById("prizeScreen").style = "display: none;"
+        document.getElementById("leaderboard").style = "display: block;"
+        window.nextAction = 0;
+        window.place = Math.max(0, window.place - 1);
+      }
+    } 
   }
 }
 
@@ -320,6 +443,58 @@ window.onload = function() {
 
 </script>
 
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+<div class="container-fluid text-center" id="prizeScreen">    
+  <div class="row content">
+    <div class="col-sm-12 text-left"> 
+      <br>
+      <center><h3 style="font-size: 64px;"><span id="prize1">1st Place Overall</span></h3></center>
+      <center><h1 style="font-size: 96px;"><b><i><span id="prize2">The CALICrew</span></i></b></h1></center>
+      <br>
+      <br>
+      <br>
+      <br>
+      <center><h5 style="font-size: 64px;"><span id="prize3">Big Ben, Bessie the Cow, Minecraft Steve</span></h5></center>
+      <center><h5 style="font-size: 42px;"><i><span id="prize4">69 pts, 420 time</span></i></h5></center>
+      <div class="row">
+        <div class="col-lg-1">
+          <img src="bear1.png" width="600">
+        </div>
+        <div class="col-lg-6">
+          <span></span>
+        </div>
+        <div class="col-lg-5">
+          <img src="props.png" width="600">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="container-fluid" id="leaderboard"> 
   <div class-="row content">
     <table class="tg">
@@ -600,16 +775,13 @@ window.onload = function() {
       </thead>
     </table>
   </div>
-  <br>
-  <br>
-  <br>
-  <br>
 </div>
 
-
+<div id="foot">
 <footer style="font-size: 24px">
     MiniSolver was made with <img src="prideheart.png" width="40" height="40">
 </footer>
+</div>
 
 </body>
 </html>
