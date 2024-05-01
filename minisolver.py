@@ -1,6 +1,5 @@
 # MiniSolver event feed parser
 # Change every line marked with TODO to match the details for this contest
-# Message @sape.lina on Discord with any issues!
 
 import json
 from time import sleep
