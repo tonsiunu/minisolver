@@ -15,6 +15,8 @@ Once the contest is over, before running the resolver, you'll need to get the ev
 
 Just opening the index.html page in your browser may not be enough to get the JavaScript working. To be safe, start a server in the resolver directory. To do this, open a terminal and cd to that folder, **then** run `python -m http.server 8080`. You will now be able to run it by navigating to http://localhost:8080/
 
+And one more thing - you should make a list in advance of all the college teams, and save it as **college-teams.txt**. Unless you now tag teams based on whether they're HS or college internally in DOMjudge - in that case, let me know and I'll change the code.
+
 ## Leaderboard
 Every row of the leaderboard while in resolution contains the team's rank, name, score, and a list of cells for each problem in the contest. The colors of the cells indicate the status:
 * Grey: no attempt
