@@ -13,7 +13,7 @@ Once the contest is over, before running the resolver, you'll need to get the ev
 6. You should get a window with a list of all the teams, don't worry about anything else on screen, just hit Save and name the file **event-feed.json**
 7. Put this file in the same folder as minisolver.py, and run it. You should get a new text file called **resolver-output.txt**; now you can run the site!
 
-To run the resolver, just open index.html in your browser.
+Just opening the index.html page in your browser may not be enough to get the JavaScript working. To be safe, start a server in the resolver directory. To do this, open a terminal and cd to that folder, **then** run `python -m http.server 8080`. You will now be able to run it by navigating to http://localhost:8080/
 
 ## Leaderboard
 Every row of the leaderboard while in resolution contains the team's rank, name, score, and a list of cells for each problem in the contest. The colors of the cells indicate the status:

@@ -125,7 +125,7 @@ class Team {
   constructor(name, isCollege, isInPerson, states, pens) {
     this.name = name;
     this.isCollege = parseInt(isCollege);
-    this.isCollege = parseInt(isInPerson);
+    this.isInPerson = parseInt(isInPerson);
     this.states = states;
     this.pens = pens;
   }
@@ -407,7 +407,8 @@ function resolveTick() {
 
         document.getElementById("prize1").innerHTML = header.join(", ");
         document.getElementById("prize2").textContent = currTeam.name;
-        document.getElementById("prize4").innerHTML = currTeam.getScore() + " pts, " + currTeam.getPenalty() + " time";
+        document.getElementById("prize3").innerHTML = currTeam.getScore() + " Points";
+        document.getElementById("prize4").innerHTML = currTeam.getPenalty() + " Time";
 
         document.getElementById("prizeScreen").style = "display: block;"
         document.getElementById("leaderboard").style = "display: none;"
@@ -567,11 +568,12 @@ async function honorTick() {
       window.honorPlace--;
       var team = window.leaderboard[window.honorPlace];
       document.getElementById("r" + i + "name").textContent = team.name;
-      document.getElementById("r" + i + "score").innerHTML = "<b>" + team.getScore() + " pts</b>, " + team.getPenalty() + " time";
+      document.getElementById("r" + i + "score").innerHTML = "<b>" + team.getScore() + " Pts</b>, " + team.getPenalty() + " Time";
       if (window.honorPlace == window.silver) {
         break;
       }
     }
+    await waitTime(2000);
     window.doneHonor = 0;
   }
 }
@@ -614,8 +616,8 @@ async function honorTick() {
       <br>
       <br>
       <br>
-      <center><h5 style="font-size: 64px;"><span id="prize3">Big Ben, Bessie the Cow, Minecraft Steve</span></h5></center>
-      <center><h5 style="font-size: 42px;"><i><span id="prize4">69 pts, 420 time</span></i></h5></center>
+      <center><h5 style="font-size: 64px;"><span id="prize3">69 Points</span></h5></center>
+      <center><h5 style="font-size: 42px;"><i><span id="prize4">420 Time</span></i></h5></center>
       <div class="row">
         <div class="col-lg-1">
           <img src="bear1.png" width="600">
