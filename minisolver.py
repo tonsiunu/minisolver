@@ -1,3 +1,6 @@
+# MiniSolver event feed parser
+# Change every line marked with TODO to match the details for this contest
+
 import json
 from time import sleep
 from enum import *
@@ -9,18 +12,30 @@ class ProblemState(Enum):
     FROZEN_AC = 3
     FROZEN_WA = 4
 
-problem_scores = [3, 3, 2, 3, 4, 4, 1, 4, 2, 3, 5, 4, 2, 2, 6, 2, 2, 1, 7, 4, 7, 3, 12, 1, 13]
-test_cases = [3, 7, 13, 11, 2, 11, 22, 6, 13, 20, 14, 12, 23, 34, 26, 42, 37, 23, 21, 41, 22, 45, 13, 24, 38]
-assert sum(problem_scores) == 100
+# make sure these are in order of the contest!
+problem_ids = [561, 562, 563, 567, 568, 569, 570, 571, 572, 573, 574, 575, 576, 577, 578] # TODO every problem's ID on DOMjudge
+problem_scores = [6, 6, 1, 7, 9, 6, 4, 3, 6, 3, 3, 10, 11, 11, 14] # TODO every problem's score
+test_cases = [7, 11, 21, 11, 11, 14, 70, 70, 11, 11, 11, 22, 10, 29, 49] # TODO every problem's number of test case files
+
+freeze_time = 90 # TODO time of the freeze in minutes
+contest_length = 180 # TODO contest length in minutes (hopefully you shouldn't have to change this)
+
+# all three of these IDs should be STRINGS
+inperson_id = "18" # TODO replace with the group ID of In-Person teams, or empty string if there aren't any
+online_id = "17" # TODO replace with the group ID of Online teams
+asdan_id = "19" # TODO replace with the group ID of ASDAN teams, or empty string if there aren't any
+
+assert sum(problem_scores) == 100, sum(problem_scores)
 assert len(test_cases) == len(problem_scores)
 
 class Team:
-    def __init__(self, json):
+    def __init__(self, json, is_college):
         self.id = json["id"]
         self.name = json["name"]
-        # TODO pre-college check
-        self.problems = [ProblemState.UNSOLVED] * 25
-        self.penalties = [0] * 25
+        self.is_inperson = int(inperson_id in json["group_ids"])
+        self.is_college = int(is_college)
+        self.problems = [ProblemState.UNSOLVED] * len(problem_scores)
+        self.penalties = [0] * len(problem_scores)
         self.seen_judgements = {}
 
     def update_problem(self, problem, state, judgement, no_pen=False, minutes=0):
@@ -40,20 +55,20 @@ class Team:
 
     def score(self):
         score = 0
-        for i in range(25):
+        for i in range(len(problem_scores)):
             if self.problems[i].value == 1:
                 score += problem_scores[i]
         return score
     
     def penalty_time(self):
         pen = 0
-        for i in range(25):
+        for i in range(len(problem_scores)):
             if self.problems[i].value == 1:
                 pen += self.penalties[i]
         return pen
     
     def resolve_next(self):
-        for i in range(25):
+        for i in range(len(problem_scores)):
             if self.problems[i].value > 2:
                 print("Now Resolving team", self.name, "with problem", i)
                 sleep(0.1)
@@ -75,19 +90,20 @@ class Team:
 
 all_teams = {}
 mega_file = open("event-feed.json").read().splitlines()
+college_teams = open("college-teams.txt").read().splitlines()
 pending_submissions = {}
 pending_judgements = {}
 
 for l in mega_file:
     data = json.loads(l)
-    if data["type"] == "teams" and data["data"]["group_ids"][0] in ["15", "16"]:
-        all_teams[data["data"]["id"]] = Team(data["data"])
+    if data["type"] == "teams" and data["data"]["group_ids"][0] in [inperson_id, online_id, asdan_id]:
+        all_teams[data["data"]["id"]] = Team(data["data"], data["data"]["name"] in college_teams)
 
     if data["type"] == "submissions" and data["data"]["team_id"] in all_teams:
-        problem = int(data["data"]["problem_id"]) - 495
+        problem = problem_ids.index(int(data["data"]["problem_id"]))
         time = data["data"]["contest_time"].split(":")
         minutes = int(time[0]) * 60 + int(time[1])
-        if 0 <= minutes < 190: # TODO change this back to 180 for sp24 contest
+        if 0 <= minutes < contest_length:
             pending_submissions[data["data"]["id"]] = [problem, minutes, data["data"]["team_id"]] # problem id, minutes elapsed, team id
       
     if data["type"] == "judgements" and data["data"]["submission_id"] in pending_submissions and not data["data"]["judgement_type_id"]:
@@ -102,13 +118,13 @@ for l in mega_file:
             del pending_judgements[data["data"]["id"]]
 
         if data["data"]["judgement_type_id"] == "AC":
-            if sub[1] >= 150:
+            if sub[1] >= freeze_time:
                 all_teams[sub[2]].update_problem(sub[0], ProblemState.FROZEN_AC, data["data"]["id"], True, sub[1])
             else:
                 all_teams[sub[2]].update_problem(sub[0], ProblemState.AC, data["data"]["id"], True, sub[1])
         else:
             no_pen = data["data"]["judgement_type_id"] == "CE" # only add penalty if code compiled
-            if sub[1] >= 150:
+            if sub[1] >= freeze_time:
                 all_teams[sub[2]].update_problem(sub[0], ProblemState.FROZEN_WA, data["data"]["id"], no_pen)
             else:
                 all_teams[sub[2]].update_problem(sub[0], ProblemState.WA, data["data"]["id"], no_pen)
@@ -125,13 +141,13 @@ for l in mega_file:
     
 for j, judging in pending_judgements.items():
     if judging[3] == "AC" and judging[4] == 0: # need enough ACs
-        if judging[1] >= 150:
+        if judging[1] >= freeze_time:
             all_teams[judging[2]].update_problem(judging[0], ProblemState.FROZEN_AC, j, True, judging[1])
         else:
             all_teams[judging[2]].update_problem(judging[0], ProblemState.AC, j, True, judging[1])
     elif judging[3] != "AC":
         no_pen = judging[3] == "CE" # only add penalty if code compiled
-        if judging[1] >= 150:
+        if judging[1] >= freeze_time:
             all_teams[judging[2]].update_problem(judging[0], ProblemState.FROZEN_WA, j, no_pen)
         else:
             all_teams[judging[2]].update_problem(judging[0], ProblemState.WA, j, no_pen)
@@ -143,7 +159,8 @@ for j, judging in pending_judgements.items():
 output = []
 for k, v in all_teams.items():
     line = []
-    line.append("0")
+    line.append(str(v.is_college))
+    line.append(str(v.is_inperson))
     line.extend([str(x.value) for x in v.problems])
     line.extend([str(x) for x in v.penalties])
     line.append(v.name)
@@ -155,7 +172,20 @@ f = open("resolver-output.txt", "w", encoding="utf-8")
 f.write("\n".join([",".join(x) for x in output]))
 f.close()
 
+num_teams_entered = len([x for x in all_teams.values() if sum(x.penalties) > 0])
+print(num_teams_entered, "Teams Competed")
+
+gold_threshold = num_teams_entered // 12
+silver_threshold = num_teams_entered // 6 - gold_threshold
+bronze_threshold = num_teams_entered // 3 - silver_threshold - gold_threshold
+
+print("Gold Teams:", gold_threshold)
+print("Silver Teams:", silver_threshold)
+print("Bronze Teams:", bronze_threshold)
+
 # text-based version of resolver starts here
+
+sleep(5)
 
 # pre-freeze leaderboard
 
