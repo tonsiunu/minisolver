@@ -15,7 +15,7 @@ class ProblemState(Enum):
 # make sure these are in order of the contest!
 problem_ids = list(range(670, 687)) # TODO every problem's ID on DOMjudge
 problem_scores = [5, 5, 5, 7, 5, 3, 3, 4, 5, 4, 6, 4, 6, 4, 7, 13, 14] # TODO every problem's score
-test_cases = [6, 14, 11, 12, 12, 22, 7, 13, 25, 15, 28, 20, 39, 5, 5, 26, 28] # TODO every problem's number of test case files
+test_cases = [6, 14, 11, 12, 12, 22, 7, 13, 25, 15, 28, 20, 39, 5, 5, 26, 40] # TODO every problem's number of test case files
 
 freeze_time = 110 # TODO time of the freeze in minutes
 contest_length = 170 # TODO contest length in minutes
@@ -39,6 +39,8 @@ class Team:
         self.seen_judgements = {}
 
     def update_problem(self, problem, state, judgement, no_pen=False, minutes=0):
+        if problem == 16 and self.id == "4680":
+            print(state, judgement)
         if judgement in self.seen_judgements and self.seen_judgements[judgement] == state: # do nothing if already seen this judging
             return
         if self.problems[problem].value % 2 == 1: # do nothing if team already has an AC submission
@@ -115,6 +117,9 @@ for l in mega_file:
             pending_judgements[data["data"]["id"]] = sub + ["CE", test_cases[sub[0]]] # problem id, minutes elapsed, team id, most recent verdict, number of ACs expected
         else:
             del pending_judgements[data["data"]["id"]]
+     
+        # if sub[2] == "4680" and sub[0] == 16:
+        #     print(data["data"]["judgement_type_id"])
 
         if data["data"]["judgement_type_id"] == "AC":
             if sub[1] >= freeze_time:
@@ -139,6 +144,10 @@ for l in mega_file:
             pending_judgements[data["data"]["judgement_id"]][4] -= 1
     
 for j, judging in pending_judgements.items():
+
+    # if sub[2] == "4680" and sub[0] == 16:
+    #     print(data["data"]["judgement_type_id"])
+
     if judging[3] == "AC" and judging[4] == 0: # need enough ACs
         if judging[1] >= freeze_time:
             all_teams[judging[2]].update_problem(judging[0], ProblemState.FROZEN_AC, j, True, judging[1])
