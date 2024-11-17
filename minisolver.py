@@ -13,17 +13,17 @@ class ProblemState(Enum):
     FROZEN_WA = 4
 
 # make sure these are in order of the contest!
-problem_ids = [561, 562, 563, 567, 568, 569, 570, 571, 572, 573, 574, 575, 576, 577, 578] # TODO every problem's ID on DOMjudge
-problem_scores = [6, 6, 1, 7, 9, 6, 4, 3, 6, 3, 3, 10, 11, 11, 14] # TODO every problem's score
-test_cases = [7, 11, 21, 11, 11, 14, 70, 70, 11, 11, 11, 22, 10, 29, 49] # TODO every problem's number of test case files
+problem_ids = list(range(670, 687)) # TODO every problem's ID on DOMjudge
+problem_scores = [5, 5, 5, 7, 5, 3, 3, 4, 5, 4, 6, 4, 6, 4, 7, 13, 14] # TODO every problem's score
+test_cases = [6, 14, 11, 12, 12, 22, 7, 13, 25, 15, 28, 20, 39, 5, 5, 26, 28] # TODO every problem's number of test case files
 
-freeze_time = 90 # TODO time of the freeze in minutes
-contest_length = 180 # TODO contest length in minutes (hopefully you shouldn't have to change this)
+freeze_time = 110 # TODO time of the freeze in minutes
+contest_length = 170 # TODO contest length in minutes
 
 # all three of these IDs should be STRINGS
-inperson_id = "18" # TODO replace with the group ID of In-Person teams, or empty string if there aren't any
-online_id = "17" # TODO replace with the group ID of Online teams
-asdan_id = "19" # TODO replace with the group ID of ASDAN teams, or empty string if there aren't any
+inperson_id = "23" # TODO replace with the group ID of In-Person teams, or empty string if there aren't any
+online_id = "21" # TODO replace with the group ID of Online teams
+asdan_id = "22" # TODO replace with the group ID of ASDAN teams, or empty string if there aren't any
 
 assert sum(problem_scores) == 100, sum(problem_scores)
 assert len(test_cases) == len(problem_scores)
@@ -71,7 +71,6 @@ class Team:
         for i in range(len(problem_scores)):
             if self.problems[i].value > 2:
                 print("Now Resolving team", self.name, "with problem", i)
-                sleep(0.1)
                 if self.problems[i].value == 3:
                     self.problems[i] = ProblemState.AC
                     print("Result: YES")
@@ -185,7 +184,7 @@ print("Bronze Teams:", bronze_threshold)
 
 # text-based version of resolver starts here
 
-sleep(5)
+sleep(2)
 
 # pre-freeze leaderboard
 
@@ -206,7 +205,6 @@ while place >= 0:
     answer = "NO"
     while answer == "NO":    
         answer = curr_team.resolve_next()
-        sleep(0.1)
 
     if answer == "YES":
         leaderboard.sort(key=lambda x: x.name)
@@ -215,5 +213,4 @@ while place >= 0:
 
     if answer == "DONE":
         print("Team", curr_team.name, "ends in place", place + 1)
-        sleep(0.1)
         place -= 1

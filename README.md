@@ -4,10 +4,10 @@ MiniSolver is made with love by tonsi
 ## Setup
 During (or even before) the contest, update the **minisolver.py** script and the **index.html** webpage by changing every line marked with TODO to match the details for the current contest. All the information should be available on DOMjudge without the contest having begun.
 
-Once the contest is over, before running the resolver, you'll need to get the event feed. This should be done using the standard ICPC resolver (TODO add link), with the following steps:
+Once the contest is over, before running the resolver, you'll need to get the event feed. This should be done using the standard ICPC resolver (https://github.com/icpctools/icpctools/tree/main/Resolver), with the following steps:
 1. Make sure you're logged into DOMjudge as admin.
 2. Go to https://calicojudge.com/jury/contests/ and find the ID number for the current contest.
-3. Open a terminal and navigate to the folder where you downloaded the ICPC resolver, then run the awards script (awards.bat on Windows, awards.sh on Mac/Linux).
+3. Open a terminal and navigate to the folder where you downloaded the ICPC resolver, then go into the scripts folder and run the awards script (awards.bat on Windows, awards.sh on Mac/Linux).
 4. Click the REST tab in the window that pops up.
 5. Fill out the credentials of the DOMjudge admin account, and in URL write https://calicojudge.com/api/contests/CONTEST-ID/
 6. You should get a window with a list of all the teams, don't worry about anything else on screen, just hit Save and name the file **event-feed.json**
@@ -27,12 +27,17 @@ Every row of the leaderboard while in resolution contains the team's rank, name,
 
 The scores and penalty times listed do not include problems that are still to be resolved. They will increase as resolutions are completed.
 
+**Note that you may have to zoom out your browser a bit to fit everything.**
+
+## Modes
+The resolver has two modes which can be configured in the javascript. Mode 1, which takes longer time, will only mention Bronze teams by name, putting Silver and Gold teams in the resolution stage. Mode 2, which takes shorter time, will move Silver teams to the first section (just honoring them by name).
+
 ## Control
 The key to advancing in the site (pun intended) is to **just press space**. If you're ever stuck, give it a press.
 
-Once you click the Start button, the first event will be to honor all the teams that achieved a Bronze placing. There is no live resolution; only their name and score will show. The names will fill the table automatically; once it's full, press space to generate more names.
+Once you click the Start button, the first event will be to honor all the teams that achieved a lower ranking. There is no live resolution; only their name and score will show. The names will fill the table automatically; once it's full, press space to generate more names.
 
-Once all the Bronze teams have been honored, the resolver stage will begin, featuring all Silver and Gold teams. This is the heart of it all.
+Once all the lower ranked teams have been honored, the resolver stage will begin, featuring all the higher ranked teams. This is the heart of it all.
 
 The following is what you can expect with each space press during the resolver stage:
 * While the leaderboard is in the idle state (i.e. no rows highlighted), on a space press, the team at the bottom place still to be resolved will have their row highlighted.
